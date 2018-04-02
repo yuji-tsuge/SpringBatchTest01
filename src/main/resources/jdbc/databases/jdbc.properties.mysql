@@ -1,0 +1,12 @@
+# batch repository
+batch.repo.jdbc.driverClassName=com.mysql.jdbc.Driver
+batch.repo.jdbc.url=jdbc:mysql://localhost:3306/spring_batch_repo
+batch.repo.jdbc.username=spring_batch
+batch.repo.jdbc.password=password
+
+# application database
+jdbc.driverClassName=com.mysql.jdbc.Driver
+jdbc.url=jdbc:mysql://localhost:3306/arisdb
+jdbc.username=test
+jdbc.password=password
+--jdbc.password=qAljJUez0XLHztB9goWzVg==

@@ -1,0 +1,113 @@
+<beans:beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:beans="http://www.springframework.org/schema/beans"
+  xmlns:context="http://www.springframework.org/schema/context"
+  xmlns:util="http://www.springframework.org/schema/util"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:batch="http://www.springframework.org/schema/batch"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+    http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd
+    http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd">
+
+  <context:property-placeholder 
+    location="classpath:/system.properties, classpath:/META-INF/spring/user/userUpdateByWriter-job.properties, classpath:/jdbc/jdbc.properties" 
+    ignore-resource-not-found="true"/>
+  
+  <beans:import resource="classpath:/META-INF/spring/batch-config.xml"/>
+  
+  <!-- =========================================== -->
+  <!-- [Section.1] bean definitions -->
+  <!-- =========================================== -->
+  
+  <beans:bean id="userSelectPagingReader" class="org.mybatis.spring.batch.MyBatisPagingItemReader">
+    <beans:property name="sqlSessionFactory" ref="batchSqlSessionFactory" />
+    <beans:property name="queryId" value="com.accenture.aris.sample.batch.UserUpdateJob.selectPaging" />
+    <beans:property name="pageSize" value="${commit.interval}" />
+    <beans:property name="parameterValues">
+      <util:map scope="step">
+        <beans:entry key="roleId" value="#{jobParameters[roleId]}" />
+      </util:map>
+    </beans:property>
+  </beans:bean>
+  
+  <beans:bean id="userUpdateWriter" class="org.mybatis.spring.batch.MyBatisBatchItemWriter" >
+    <beans:property name="sqlSessionFactory" ref="batchSqlSessionFactory" />
+    <beans:property name="statementId" value="com.accenture.aris.sample.batch.UserUpdateJob.update" />
+  </beans:bean>
+  
+  <beans:bean id="userFileWriter" class="com.accenture.aris.common.batch.item.FlatFileItemWriter">
+    <beans:property name="resource" value="file:${file.output}" />
+    <beans:property name="shouldDeleteIfEmpty" value="true" />
+    <beans:property name="saveState" value="true" />
+    <beans:property name="lineSeparator" value="LF" />
+    <beans:property name="lineAggregator">
+      <beans:bean class="com.accenture.aris.common.batch.item.DelimitedLineAggregator">
+        <beans:property name="fieldExtractor">
+          <beans:bean class="com.accenture.aris.common.batch.item.BeanWrapperFieldExtractor" >
+            <beans:property name="names" value="id, name, password, roleId, email, sex, nationality, text, defkey, startDate, endDate" />
+          </beans:bean>
+        </beans:property>
+        <beans:property name="delimiter" value="TAB" />
+      </beans:bean>
+    </beans:property>
+    <!-- 
+    <beans:bean class="org.springframework.batch.item.file.transform.FormatterLineAggregator">
+        <beans:property name="fieldExtractor">
+          <beans:bean class="org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor" >
+            <beans:property name="names" value="id, name, password, roleId, email, sex, nationality, text, defkey, startDate, endDate" />
+          </beans:bean>
+        </beans:property>
+        <beans:property name="format" value="%1$s,%2$s,%3$s,%4$s,%5$s,%6$s,%7$s,%8$s,%9$s,%10$tF %10$tT,%11$tF %11$tT" />
+      </beans:bean>
+    </beans:property>
+    -->
+  </beans:bean>
+  
+  <beans:bean id="fileRenameListener" class="com.accenture.aris.sample.batch.listener.FileRenameStepExecutionListener" >
+    <beans:property name="targetFilename" value="${file.output}"/>
+  </beans:bean>
+  
+  <!-- =========================================== -->
+  <!-- [Section.2] step definitions -->
+  <!-- =========================================== -->
+  
+  <batch:step id="userUpdateByWriterStep" parent="parentChunkStep">
+    <batch:tasklet>
+      <batch:chunk reader="userSelectPagingReader" writer="userUpdateWriter"
+          skip-limit="${skip.limit}" commit-interval="${commit.interval}">
+        <batch:skippable-exception-classes merge="true" />
+      </batch:chunk>
+    </batch:tasklet>
+    <batch:listeners merge="true" />
+  </batch:step>
+  
+  <batch:step id="userOutputFileStep" parent="parentChunkStep">
+    <batch:tasklet>
+      <batch:chunk reader="userSelectPagingReader" writer="userFileWriter"
+          skip-limit="${skip.limit}" commit-interval="${commit.interval}">
+        <batch:skippable-exception-classes merge="true" />
+      </batch:chunk>
+    </batch:tasklet>
+    <batch:listeners merge="true" >
+      <batch:listener ref="fileRenameListener" />
+    </batch:listeners>
+  </batch:step>
+  
+  <!-- =========================================== -->
+  <!-- [Section.3] job definitions -->
+  <!-- =========================================== -->
+  
+  <batch:job id="userUpdateJob01" restartable="true" parent="parentJob">
+    <batch:step id="step1" parent="userUpdateByWriterStep">
+      <batch:next on="*" to="step2" />
+      <batch:fail on="FAILED" exit-code="EARLY TERMINATION"/>
+    </batch:step>
+    <batch:step id="step2" parent="userOutputFileStep">
+    </batch:step>
+    <batch:listeners merge="true" />
+  </batch:job>
+  
+</beans:beans>

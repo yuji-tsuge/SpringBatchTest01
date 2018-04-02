@@ -1,0 +1,6 @@
+#dataSource
+jdbc.driverClassName=com.sybase.jdbc4.jdbc.SybDriver
+jdbc.url=jdbc:sybase:Tds:MW7F0YMEGCJSJY:5000/test001?charset=utf8
+jdbc.username=test
+jdbc.password=password
+--jdbc.password=qAljJUez0XLHztB9goWzVg==

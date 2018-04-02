@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.accenture.aris.sample.batch.UserUpdateJob">
+  
+  <select id="selectPaging" resultType="com.accenture.aris.sample.business.entity.UserEntity">
+    select * from t_user 
+    <where>
+      <if test="roleId != null">role_id = #{roleId}</if>
+    </where>
+    order by id LIMIT #{_pagesize} OFFSET #{_skiprows} 
+  </select>
+  
+  <update id="update" parameterType="com.accenture.aris.sample.business.entity.UserEntity">
+    update t_user
+    set 
+      name = #{name,jdbcType=VARCHAR},
+      password = #{password,jdbcType=VARCHAR},
+      role_id = #{roleId,jdbcType=VARCHAR},
+      email = #{email,jdbcType=VARCHAR},
+      sex = #{sex,jdbcType=VARCHAR},
+      nationality = #{nationality,jdbcType=VARCHAR},
+      text = #{text,jdbcType=VARCHAR},
+      defKey = #{defkey,jdbcType=VARCHAR},
+      start_date = #{startDate,jdbcType=DATE},
+      end_date = #{endDate,jdbcType=DATE}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  
+</mapper>

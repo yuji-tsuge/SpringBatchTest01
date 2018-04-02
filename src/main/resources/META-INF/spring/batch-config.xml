@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:mvc="http://www.springframework.org/schema/mvc"
+  xmlns:batch="http://www.springframework.org/schema/batch"
+  xmlns:beans="http://www.springframework.org/schema/beans"
+  xmlns:context="http://www.springframework.org/schema/context"
+  xmlns:tx="http://www.springframework.org/schema/tx"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:aop="http://www.springframework.org/schema/aop"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+    http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd">
+   
+  <beans:import resource="classpath:/META-INF/spring/applicationContext.xml"/>
+  <beans:import resource="classpath:/META-INF/spring/service-config.xml"/>
+  <beans:import resource="classpath:/META-INF/spring/datasource-config.xml"/>
+  
+  <context:component-scan base-package="com.accenture.aris" use-default-filters="true"/>
+  <context:annotation-config/>
+  
+  <!-- =========================================== -->
+  <!-- MyBatis config for ItemReader or ItemWriter -->  
+  <!-- =========================================== -->
+  
+  <beans:bean id="batchSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+    <beans:property name="dataSource" ref="dataSource"/>
+    <beans:property name="configLocation" value="classpath:/META-INF/spring/mybatis.xml" />
+    <beans:property name="mapperLocations" value="classpath:/META-INF/spring/**/*-sql.xml" />
+  </beans:bean>
+
+  <!-- =========================================== -->
+  <!-- Spring Batch Core configuration -->  
+  <!-- =========================================== -->
+  
+  <beans:bean id="jobLauncher" class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+    <beans:property name="jobRepository" ref="jobRepository"/>
+    <beans:property name="taskExecutor" ref="taskExecutor"/>
+  </beans:bean>
+  
+  <beans:bean id="jobExplorer" class="org.springframework.batch.core.explore.support.JobExplorerFactoryBean"
+    p:dataSource-ref="jobRepositoryDataSource" />
+   
+  <beans:bean id="jobRepositoryTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    <beans:property name="dataSource" ref="jobRepositoryDataSource"/>
+  </beans:bean>
+
+  <beans:bean id="jobRepository" class="org.springframework.batch.core.repository.support.JobRepositoryFactoryBean"
+    p:databaseType="${database.type}"
+    p:dataSource-ref="jobRepositoryDataSource" 
+    p:transactionManager-ref="jobRepositoryTransactionManager"
+    p:maxVarCharLength="1024"
+    p:isolationLevelForCreate="${isoloation_level}" />
+  
+  <beans:bean id="taskExecutor" class="org.springframework.core.task.SyncTaskExecutor"/>
+  
+  <beans:bean id="defaultJobExecutionListener" class="com.accenture.aris.common.batch.listener.DefaultJobExecutionListener" />
+  <beans:bean id="defaultStepExecutionListener" class="com.accenture.aris.common.batch.listener.DefaultStepExecutionListener" />
+  <beans:bean id="defaultChunkListener" class="com.accenture.aris.common.batch.listener.DefaultChunkListener" />
+  <beans:bean id="defaultItemReadListener" class="com.accenture.aris.common.batch.listener.DefaultItemReadListener" />
+  <beans:bean id="defaultItemWriteListener" class="com.accenture.aris.common.batch.listener.DefaultItemWriteListener" />
+  <beans:bean id="defaultItemProcessListener" class="com.accenture.aris.common.batch.listener.DefaultItemProcessListener" />
+  <beans:bean id="defaultSkipListener" class="com.accenture.aris.common.batch.listener.DefaultSkipListener" />
+  
+  <beans:bean id="defaultJobParametersValidator" class="com.accenture.aris.common.batch.parameters.DefaultJobParametersValidator" />
+  
+  <beans:bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean" scope="prototype" />
+  
+  <!-- =========================================== -->
+  <!-- Application Common configuration -->
+  <!-- =========================================== -->
+  
+  <!-- validation -->
+  <beans:bean class="com.accenture.aris.common.validator.ValidationWrapper">
+    <beans:property name="loggingError" value="true" />
+    <beans:property name="throw" value="true" />
+  </beans:bean>
+  
+  <!-- job definitions -->  
+  <batch:job id="parentJob" abstract="true">
+    <batch:validator ref="defaultJobParametersValidator" />
+    <batch:listeners>
+      <batch:listener ref="defaultJobExecutionListener"/>
+    </batch:listeners>
+  </batch:job>
+
+  <!-- Step definitions -->  
+  <beans:bean id="stepTxManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    <beans:property name="dataSource" ref="dataSource"/>
+  </beans:bean>
+  
+  <beans:bean id="baseStep" abstract="true" class="org.springframework.batch.core.step.factory.FaultTolerantStepFactoryBean">
+    <beans:property name="jobRepository" ref="jobRepository"/>
+    <beans:property name="transactionManager" ref="stepTxManager"/>
+  </beans:bean>
+
+  <batch:step id="parentChunkStep" parent="baseStep">
+    <batch:tasklet transaction-manager="transactionManager">
+      <batch:chunk skip-limit="5" commit-interval="30">
+        <batch:skippable-exception-classes>
+          <batch:include class="com.accenture.aris.core.ForceSkipException" />
+          <batch:include class="com.accenture.aris.common.validator.ValidationErrorException" />
+          <batch:include class="java.lang.IllegalArgumentException" />
+          <batch:include class="org.springframework.batch.item.file.FlatFileParseException" />
+        </batch:skippable-exception-classes>
+      </batch:chunk>
+    </batch:tasklet>
+    <batch:listeners>
+      <batch:listener ref="defaultStepExecutionListener"/>
+      <batch:listener ref="defaultChunkListener"/>
+      <batch:listener ref="defaultItemReadListener"/>
+      <batch:listener ref="defaultItemWriteListener"/>
+      <batch:listener ref="defaultItemProcessListener"/>
+      <batch:listener ref="defaultSkipListener"/>
+    </batch:listeners>
+  </batch:step>
+  
+</beans:beans>

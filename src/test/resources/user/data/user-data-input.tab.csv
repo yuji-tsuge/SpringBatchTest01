@@ -1,0 +1,3 @@
+U0001	test1	password	R0001	test1@example.com	s1	n1	text	df	2014/03/18 00:00:00	9999/12/31 00:00:00
+U0002	test2	password	R0002	test2@example.com	s2	n2	text	df	2014/03/18 00:00:00	9999/12/31 00:00:00
+U0005	testXXX	password	ALL	a@a.net	s1	n1		ud	2014/06/12 00:00:00	9999/12/31 00:00:00

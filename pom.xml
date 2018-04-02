@@ -1,0 +1,488 @@
+<project 
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+        http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.accenture.aris</groupId>
+  <artifactId>aris-batch-sample</artifactId>
+  <packaging>jar</packaging>
+  <version>1.0.0-SNAPSHOT</version>
+  <name>aris-batch-sample</name>
+
+  <profiles>
+    <profile>
+      <id>local</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <target.dist>local</target.dist>
+        <tmp.file.dir>/tmp</tmp.file.dir>
+      </properties>
+    </profile>
+    <profile>
+      <id>dev</id>
+      <properties>
+        <target.dist>dev</target.dist>
+        <tmp.file.dir>/tmp</tmp.file.dir>
+      </properties>
+    </profile>
+    <profile>
+      <id>test</id>
+      <properties>
+        <target.dist>test</target.dist>
+        <tmp.file.dir>/tmp</tmp.file.dir>
+      </properties>
+    </profile>
+    <profile>
+      <id>qa</id>
+      <properties>
+        <target.dist>qa</target.dist>
+        <tmp.file.dir>/tmp</tmp.file.dir>
+      </properties>
+    </profile>
+    <profile>
+      <id>prod</id>
+      <properties>
+        <target.dist>prod</target.dist>
+        <tmp.file.dir>/tmp</tmp.file.dir>
+      </properties>
+    </profile>
+  </profiles>
+  
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    
+    <spring.version>4.2.0.RELEASE</spring.version>
+    <spring.batch.version>3.0.5.RELEASE</spring.batch.version>
+    
+    <mybatis.version>3.3.0</mybatis.version>
+    <mybatis.spring.version>1.2.3</mybatis.spring.version>
+    
+    <aspectjrt.version>1.6.10</aspectjrt.version>
+    <aspectjweaver.version>1.7.4</aspectjweaver.version>
+    <cglib.version>2.2.2</cglib.version>
+    
+    <commons.beanutils.version>1.8.3</commons.beanutils.version>
+    <commons.collections.version>3.2.1</commons.collections.version>
+    <commons.dbcp.version>1.2.2</commons.dbcp.version>
+    <commons.digester.version>1.7</commons.digester.version>
+    <commons.io.version>1.4</commons.io.version>
+    <commons.jexl.version>2.1.1</commons.jexl.version>
+    <commons.lang3.version>3.1</commons.lang3.version>
+    
+    <hibernate.validator.version>4.3.1.Final</hibernate.validator.version>
+    <jxl.version>2.6.12</jxl.version>
+    <jxls.version>1.0.2</jxls.version>
+    <poi.version>3.9</poi.version>
+    <slf4j.version>1.7.12</slf4j.version>
+    <velocity.version>1.7</velocity.version>
+    <zip4j.version>1.3.1</zip4j.version>
+    
+    <maven.compiler.source>1.6</maven.compiler.source>
+    <maven.compiler.target>1.6</maven.compiler.target>
+  </properties>
+
+  <dependencies>
+
+    <!-- ========================== -->
+    <!-- aris-encrypt -->
+    <!-- ========================== -->
+    <dependency>
+      <groupId>com.accenture.aris</groupId>
+      <artifactId>aris-encrypt-tool</artifactId>
+      <version>1.0</version>
+    </dependency>
+    
+    <!-- ========================== -->
+    <!-- spring batch -->
+    <!-- ========================== -->
+    <dependency>
+      <groupId>org.springframework.batch</groupId>
+      <artifactId>spring-batch-core</artifactId>
+      <version>${spring.batch.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-aop</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.batch</groupId>
+      <artifactId>spring-batch-infrastructure</artifactId>
+      <version>${spring.batch.version}</version>
+    </dependency>
+
+    <!-- ========================== -->
+    <!-- spring framework -->
+    <!-- ========================== -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-aop</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-beans</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context-support</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-core</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jdbc</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-tx</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+
+    <!-- ========================== -->
+    <!-- mybatis -->
+    <!-- ========================== -->
+    <dependency>
+      <groupId>org.mybatis</groupId>
+      <artifactId>mybatis</artifactId>
+      <version>${mybatis.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.mybatis</groupId>
+      <artifactId>mybatis-spring</artifactId>
+      <version>${mybatis.spring.version}</version>
+    </dependency>
+    
+    <!-- ========================== -->
+    <!-- aspectj -->
+    <!-- ========================== -->
+    <dependency>
+      <groupId>org.aspectj</groupId>
+      <artifactId>aspectjrt</artifactId>
+      <version>${aspectjrt.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.aspectj</groupId>
+      <artifactId>aspectjweaver</artifactId>
+      <version>${aspectjweaver.version}</version>
+    </dependency>
+    
+    <!-- ========================== -->
+    <!-- cglib -->
+    <!-- ========================== -->
+    <dependency>
+      <groupId>cglib</groupId>
+      <artifactId>cglib</artifactId>
+      <version>${cglib.version}</version>
+    </dependency>
+    
+    <!-- ========================== -->
+    <!-- apache commons -->
+    <!-- ========================== -->
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
+      <version>${commons.beanutils.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>commons-collections</groupId>
+      <artifactId>commons-collections</artifactId>
+      <version>${commons.collections.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>commons-dbcp</groupId>
+      <artifactId>commons-dbcp</artifactId>
+      <version>${commons.dbcp.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>commons-digester</groupId>
+      <artifactId>commons-digester</artifactId>
+      <version>${commons.digester.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>${commons.io.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-jexl</artifactId>
+      <version>${commons.jexl.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>${commons.lang3.version}</version>
+    </dependency>
+
+    <!-- ========================== -->
+    <!-- hibernate validator -->
+    <!-- ========================== -->
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-validator</artifactId>
+      <version>${hibernate.validator.version}</version>
+    </dependency>
+    
+    <!-- ========================== -->
+    <!-- javax.* -->
+    <!-- ========================== -->
+    <dependency>
+      <groupId>javax.inject</groupId>
+      <artifactId>javax.inject</artifactId>
+      <version>1</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>javax.mail</artifactId>
+      <version>1.5.0</version>
+    </dependency>
+    
+    <!-- ========================== -->
+    <!-- super csv -->
+    <!-- ========================== -->
+    <dependency>
+      <groupId>net.sf.supercsv</groupId>
+      <artifactId>super-csv</artifactId>
+      <version>2.1.0</version>
+    </dependency>
+    
+    <!-- ========================== -->
+    <!-- sybase jdbc driver -->
+    <!-- ========================== -->
+    <dependency>
+      <groupId>com.sybase.jdbc4.jdbc</groupId>
+      <artifactId>jconn4</artifactId>
+      <version>26502</version>
+    </dependency>
+    
+    <!-- ========================== -->
+    <!-- jxl -->
+    <!-- ========================== -->
+    <dependency>
+      <groupId>net.sourceforge.jexcelapi</groupId>
+      <artifactId>jxl</artifactId>
+      <version>${jxl.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>net.sf.jxls</groupId>
+      <artifactId>jxls-core</artifactId>
+      <version>${jxls.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>net.sf.jxls</groupId>
+      <artifactId>jxls-reader</artifactId>
+      <version>${jxls.version}</version>
+    </dependency>
+    
+    <!-- ========================== -->
+    <!-- mysql jdbc driver -->
+    <!-- ========================== -->
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>5.1.36</version>
+    </dependency>
+    
+    <!-- ========================== -->
+    <!-- oracle jdbc driver -->
+    <!-- ========================== -->
+    <dependency>
+        <groupId>com.oracle</groupId>
+        <artifactId>ojdbc6</artifactId>
+        <version>11.2.0</version>
+    </dependency>
+    
+    <!-- ========================== -->
+    <!-- javax.persistance -->
+    <!-- ========================== -->
+    <dependency>
+      <groupId>javax.persistence</groupId>
+      <artifactId>persistence-api</artifactId>
+      <version>1.0.2</version>
+    </dependency>
+    
+    <!-- ========================== -->
+    <!-- apache poi -->
+    <!-- ========================== -->
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi</artifactId>
+      <version>${poi.version}</version>
+    </dependency>
+    
+    <!-- ========================== -->
+    <!-- slf4j -->
+    <!-- ========================== -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jcl-over-slf4j</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    
+    <!-- ========================== -->
+    <!-- validation api -->
+    <!-- ========================== -->
+    <dependency>
+      <groupId>javax.validation</groupId>
+      <artifactId>validation-api</artifactId>
+      <version>1.0.0.GA</version>
+    </dependency>
+    
+    <!-- ========================== -->
+    <!-- verocity -->
+    <!-- ========================== -->
+    <dependency>
+      <groupId>org.apache.velocity</groupId>
+      <artifactId>velocity</artifactId>
+      <version>${velocity.version}</version>
+    </dependency>
+    
+    <!-- ========================== -->
+    <!-- zip4j -->
+    <!-- ========================== -->
+    <dependency>
+      <groupId>net.lingala.zip4j</groupId>
+      <artifactId>zip4j</artifactId>
+      <version>${zip4j.version}</version>
+    </dependency>
+    
+    <!-- ========================== -->
+    <!-- test -->
+    <!-- ========================== -->
+    <dependency>
+      <groupId>org.dbunit</groupId>
+      <artifactId>aris-dbunit</artifactId>
+      <version>2.4.9</version>
+      <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>${spring.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.batch</groupId>
+      <artifactId>spring-batch-test</artifactId>
+      <version>${spring.batch.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+        <excludes>
+          <exclude>system.properties.*</exclude>
+          <exclude>jdbc/jdbc.*.properties</exclude>
+          <exclude>jdbc/databases/**/*</exclude>
+          <exclude>sql/**/*</exclude>
+        </excludes>
+      </resource>
+    </resources>
+    
+    <finalName>${project.artifactId}_${target.dist}</finalName>
+    
+    <filters>
+      <filter>src/main/filters/filter.${target.dist}.properties</filter>
+    </filters>
+    
+    <plugins>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-source-files</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <copy todir="target/classes">
+                  <fileset dir="src/main/java">
+                    <include name="**/*" />
+                  </fileset>
+                </copy>
+              </tasks>
+            </configuration>
+          </execution>
+          <execution>
+            <id>update-jdbc-properties</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <copy file="src/main/resources/jdbc/jdbc.${target.dist}.properties" 
+                  tofile="src/main/resources/jdbc/jdbc.properties"
+                  overwrite="true" />
+              </tasks>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  
+</project>

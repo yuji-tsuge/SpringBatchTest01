@@ -1,0 +1,3 @@
+# database type
+database.type=ORACLE
+isoloation_level=ISOLATION_READ_COMMITTED

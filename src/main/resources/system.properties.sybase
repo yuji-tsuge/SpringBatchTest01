@@ -1,0 +1,3 @@
+# database type
+database.type=SYBASE
+isoloation_level=ISOLATION_SERIALIZABLE

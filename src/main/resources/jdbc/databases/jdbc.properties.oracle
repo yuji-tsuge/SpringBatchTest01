@@ -1,0 +1,6 @@
+#dataSource
+jdbc.driverClassName=oracle.jdbc.driver.OracleDriver
+jdbc.url=jdbc:oracle:thin:@localhost:1521:XE
+jdbc.username=test
+jdbc.password=password
+--jdbc.password=qAljJUez0XLHztB9goWzVg==

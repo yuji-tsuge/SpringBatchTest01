@@ -1,0 +1,80 @@
+<beans:beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:beans="http://www.springframework.org/schema/beans"
+  xmlns:context="http://www.springframework.org/schema/context"
+  xmlns:util="http://www.springframework.org/schema/util"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:batch="http://www.springframework.org/schema/batch"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+    http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd
+    http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd">
+
+  <context:property-placeholder 
+    location="classpath:/system.properties, classpath:/META-INF/spring/user/userUpdateByService-job.properties, classpath:/jdbc/jdbc.properties" 
+    ignore-resource-not-found="true"/>
+  
+  <beans:import resource="classpath:/META-INF/spring/batch-config.xml"/>
+  
+  <!-- =========================================== -->
+  <!-- [Section.1] bean definitions -->
+  <!-- =========================================== -->
+  
+  <beans:bean id="userSelectPagingReader" class="com.accenture.aris.common.batch.item.JdbcPagingItemReader">
+    <beans:property name="dataSource" ref="dataSource" />
+    <beans:property name="rowMapper" ref="userRowMapper" />
+    <beans:property name="sql" ref="selectUser"/>
+    <beans:property name="pageSize" value="5" />
+    <beans:property name="preparedStatementSetter">
+      <beans:bean class="org.springframework.batch.core.resource.ListPreparedStatementSetter">
+        <beans:property name="parameters">
+          <util:list>
+            <beans:value>T001%</beans:value>
+          </util:list>
+        </beans:property>
+      </beans:bean>
+    </beans:property>
+  </beans:bean>
+  
+  <beans:bean id="selectUser" class="java.lang.String">
+    <beans:constructor-arg>
+      <beans:value>
+      <![CDATA[
+        SELECT ID, NAME, PASSWORD, EMAIL FROM T_USER WHERE ID like ?
+      ]]>
+      </beans:value>
+    </beans:constructor-arg>
+  </beans:bean>
+  
+  <beans:bean id="userRowMapper" class="com.accenture.aris.sample.batch.mapper.UserRowMappler"/>
+  
+  <beans:bean id="userUpdateProcessor" class="com.accenture.aris.sample.batch.processor.UserUpdateProcessor"/>
+
+
+  
+  <!-- =========================================== -->
+  <!-- [Section.2] step definitions -->
+  <!-- =========================================== -->
+  
+  <batch:step id="testJdbcPagingReaderStep" parent="parentChunkStep">
+    <batch:tasklet>
+      <batch:chunk reader="userSelectPagingReader" processor="userUpdateProcessor"
+          skip-limit="5" commit-interval="5">
+        <batch:skippable-exception-classes merge="true" />
+      </batch:chunk>
+    </batch:tasklet>
+    <batch:listeners merge="true" />
+  </batch:step>
+  
+  <!-- =========================================== -->
+  <!-- [Section.3] job definitions -->
+  <!-- =========================================== -->
+  
+  <batch:job id="testJdbcPagingReader" restartable="true" parent="parentJob">
+    <batch:step id="step1" parent="testJdbcPagingReaderStep" />
+    <batch:listeners merge="true" />
+  </batch:job>
+  
+</beans:beans>
